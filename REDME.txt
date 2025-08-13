@@ -1,0 +1,120 @@
+🚗 Leitor de Placas Automotivas com YOLO + EasyOCR + Tkinter
+Este projeto detecta e reconhece placas veiculares em tempo real, utilizando:
+
+YOLO (You Only Look Once) → Para detectar onde está a placa na imagem.
+
+EasyOCR → Para ler os caracteres da placa detectada.
+
+Tkinter → Para a interface gráfica com vídeo, log e status.
+
+Threading e Fila de Frames → Para baixo consumo de CPU e zero delay.
+
+
+
+📸 Interface do Sistema
+A interface é dividida em 3 áreas principais:
+
+less
+Copiar
+Editar
+┌──────────────────────────────┬─────────────────────────┐
+│         Vídeo Ao Vivo         │      Log de Leituras    │
+│  (Câmera RTSP com detecção)   │ [12:00:01] ABC1234      │
+│  ████▌← Placa detectada       │ [12:00:02] XYZ9A88      │
+│                               │ [12:00:03] ---          │
+└──────────────────────────────┴─────────────────────────┘
+           Última Placa Detectada:  [ IMAGEM DA PLACA ]
+⚙️ Fluxo de Funcionamento
+🔹 1. Captura de vídeo (sem delay)
+O sistema conecta à câmera RTSP.
+
+Mantém apenas 1 frame no buffer para evitar atraso.
+
+mathematica
+Copiar
+Editar
+Câmera IP ──> Thread de Captura ──> Fila com 1 Frame
+🔹 2. Detecção com YOLO
+Cada frame é processado pelo modelo YOLO (best.pt).
+
+Detecta caixas delimitadoras (bounding boxes) das placas.
+
+
+(Imagem ilustrativa)
+
+🔹 3. OCR com EasyOCR
+Para cada placa detectada:
+
+Recorta a região da placa.
+
+Envia para fila de OCR.
+
+Threads de OCR leem e validam a placa.
+
+nginx
+Copiar
+Editar
+YOLO → Placa Recortada → Fila OCR → EasyOCR → Texto da Placa
+
+(Imagem ilustrativa de reconhecimento de texto)
+
+🔹 4. Atualização da Interface
+Vídeo ao vivo com retângulos verdes nas placas.
+
+Log lateral com últimas leituras, incluindo horário.
+
+Última placa detectada exibida com imagem destacada.
+
+Status colorido indicando se a placa corresponde à buscada.
+
+🖥️ Requisitos do Sistema
+Python 3.9+
+
+Dependências:
+
+bash
+Copiar
+Editar
+pip install opencv-python-headless easyocr ultralytics pillow matplotlib
+Modelo YOLO (best.pt) treinado para placas brasileiras.
+
+⚡ Dicas para Melhor Desempenho
+Resolução da câmera → Use 640x360 para reduzir uso de CPU.
+
+Threads de OCR → 2 ou 3 threads bastam para processamento paralelo.
+
+INTERVALO_OCR → Ajuste entre 0.3 e 0.5 segundos para evitar sobrecarga.
+
+GPU (opcional) → Se tiver CUDA, ative no EasyOCR (gpu=True) para ganho de velocidade.
+
+🔹 Fluxo Completo em Diagrama
+mathematica
+Copiar
+Editar
+           ┌──────────────┐
+           │  Câmera IP   │
+           └─────┬────────┘
+                 │ Frame
+         Thread Captura (1 Frame)
+                 │
+         ┌───────▼────────┐
+         │     YOLO       │
+         │  Detecta Placa │
+         └───┬────────────┘
+             │
+       Placa Recortada
+             │
+       ┌─────▼──────┐
+       │   Fila     │
+       │    OCR     │
+       └─────┬──────┘
+             │
+     Threads EasyOCR
+             │
+       ┌─────▼───────────┐
+       │  Tkinter GUI    │
+       │ Vídeo + Log +   │
+       │ Última Placa    │
+       └─────────────────┘
+
+       
